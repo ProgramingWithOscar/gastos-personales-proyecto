@@ -1,1 +1,29 @@
-@import "tailwindcss";
+.toast {
+  background-image: none !important;
+  opacity: 1 !important;
+}
+
+.toast-success {
+  background-color: #198754 !important;
+  color: #fff !important;
+}
+
+.toast-error {
+  background-color: #dc3545 !important;
+  color: #fff !important;
+}
+
+.toast-warning {
+  background-color: #ffc107 !important;
+  color: #212529 !important;
+}
+
+.toast-info {
+  background-color: #0d6efd !important;
+  color: #fff !important;
+}
+
+.toast-title,
+.toast-message {
+  color: inherit !important;
+}

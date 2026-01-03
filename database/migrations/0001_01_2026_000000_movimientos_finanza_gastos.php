@@ -18,8 +18,8 @@ return new class extends Migration
             $table->unsignedSmallInteger('categoria_id')->comment("Categoría del gasto");
             $table->unsignedSmallInteger('cuenta_id')->comment("Cuenta del movimiento");
             $table->decimal("monto")->comment("Monto del movimiento");
-            $table->unsignedSmallInteger('compañia_id')->nullable()->comment("Compañia del movimiento, es decir,la entidad a la cual se le hará el pago");
-            $table->enum('periocidad', ['mensual', 'diario', 'semestral', 'trimestral', 'anual'])->nullable()->comment("Cuenta del movimiento");
+            $table->unsignedSmallInteger('compania_id')->nullable()->comment("Compañia del movimiento, es decir,la entidad a la cual se le hará el pago");
+            $table->enum('periodicidad', ['mensual', 'diario', 'semestral', 'trimestral', 'anual'])->nullable()->comment("Cuenta del movimiento");
             $table->boolean("gasto_pago")->nullable()->comment("Estado que indica si el gasto ya fue pagado o no");
             $table->timestamp('plazo_max_pago')->nullable()->comment("Fecha máxima para realizar el pago del gasto");
             $table->rememberToken();

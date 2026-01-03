@@ -14,4 +14,13 @@ class MovimientosGastosController extends Controller
 
     protected $model = MovimientosGastosModel::class;
 
+    public function index()
+    {
+        $gastos = MovimientosGastosModel::with(['categoria', 'cuenta'])->get();
+
+        return response()->json([
+            'data' => $gastos
+        ]);
+    }
+
 }

@@ -1,174 +1,175 @@
 <template>
-  <div class="space-y-8 p-8">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+  <div class="container py-4">
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
       <div>
-        <h1 class="text-3xl font-black text-slate-900 tracking-tight">Movimientos</h1>
-        <p class="text-slate-500 font-medium">Historial detallado y auditoría de tus finanzas.</p>
+        <h3 class="fw-bold display-6 mb-1">Movimientos (Gastos)</h3>
+        <p class="text-muted mb-0">
+          Historial detallado y auditoría de tus gastos.
+        </p>
       </div>
-      <div class="flex gap-3">
-        <button class="px-5 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
-          <Download :size="18" />
-          <span class="hidden sm:inline">Exportar</span>
-        </button>
-        <button
-          @click="showAddModal = true"
-          class="px-6 py-3 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-100 flex items-center gap-2"
-        >
-          <Plus :size="18" />
-          <span>Añadir Registro</span>
+
+      <div class="d-flex gap-5">
+        <button class="btn btn-primary" @click="handleOpenModal(null)">
+          Añadir Registro
         </button>
       </div>
     </div>
 
-    <!-- Buscador y filtros -->
-    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4">
-      <div class="relative flex-1">
-        <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" :size="18" />
-        <input
-          v-model="searchTerm"
-          type="text"
-          placeholder="Buscar por concepto o categoría..."
-          class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-indigo-100 outline-none font-medium text-sm"
-        />
-      </div>
 
-      <div class="flex gap-2 p-1 bg-slate-100 rounded-xl">
-        <button
-          v-for="f in filters"
-          :key="f.id"
-          @click="typeFilter = f.id"
-          :class="[
-            'px-5 py-2 rounded-lg text-xs font-black uppercase tracking-widest',
-            typeFilter === f.id
-              ? 'bg-white text-indigo-600 shadow-sm'
-              : 'text-slate-500 hover:text-slate-700'
-          ]"
-        >
-          {{ f.label }}
-        </button>
-      </div>
-    </div>
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Fecha</th>
+              <th>Descripción</th>
+              <th>Categoría</th>
+              <th>Cuenta</th>
+              <th>Monto</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="t in filteredTransactions" :key="t.id">
+              <td class="text-muted fw-bold">
+                {{ formatDate(t.fecha) }}
+              </td>
+              <td class="fw-bold">
+                {{ t.descripcion || 'Sin descripción' }}
+              </td>
+              <td> {{ t.categoria?.nombre }}</td>
+              <td> {{ t.cuenta?.nombre }}</td>
+              <td class="fw-bold" :class="t.tipo === 'INCOME' ? 'text-success' : 'text-danger'">
+                {{ t.tipo === 'INCOME' ? '+' : '-' }}{{ new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(t.monto) }}
+              </td>
 
-    <!-- Tabla -->
-    <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
-      <table class="hidden md:table w-full text-left">
-        <tbody class="divide-y divide-slate-50">
-          <tr
-            v-for="t in filteredTransactions"
-            :key="t.id"
-            class="hover:bg-slate-50/80 group"
-          >
-            <td class="px-8 py-5 text-sm font-bold text-slate-500">{{ t.date }}</td>
-            <td class="px-8 py-5 text-sm font-black text-slate-900">{{ t.description }}</td>
-            <td class="px-8 py-5 flex items-center gap-2">
-              <div class="p-2 bg-slate-100 rounded-xl text-slate-500">
-                {{ getCategoryIcon(t.categoryId) }}
-              </div>
-              <span class="text-xs font-bold text-slate-600">
-                {{ categoryName(t.categoryId) }}
-              </span>
-            </td>
-            <td class="px-8 py-5">
-              <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">
-                {{ accountName(t.accountId) }}
-              </span>
-            </td>
-            <td class="px-8 py-5 text-base font-black"
-                :class="t.type === 'INCOME' ? 'text-green-600' : 'text-slate-900'">
-              {{ t.type === 'INCOME' ? '+' : '-' }}{{ t.amount.toLocaleString('es-ES') }}€
-            </td>
-            <td class="px-8 py-5 text-right">
-              <ChevronRight :size="18" class="text-slate-300 opacity-0 group-hover:opacity-100" />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Modal -->
-    <div v-if="showAddModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40">
-      <div class="bg-white rounded-[2.5rem] w-full max-w-xl shadow-2xl">
-        <div class="p-6 flex justify-between border-b">
-          <h3 class="font-black">Nuevo Movimiento</h3>
-          <button @click="showAddModal = false">
-            <X :size="20" />
-          </button>
-        </div>
-
-        <div class="p-8 space-y-6">
-          <input v-model="newTx.description" placeholder="Descripción" class="w-full px-6 py-4 border rounded-xl" />
-          <input v-model.number="newTx.amount" type="number" class="w-full px-6 py-4 border rounded-xl" />
-
-          <button
-            @click="handleAdd"
-            class="w-full py-4 bg-indigo-600 text-white rounded-xl font-black"
-          >
-            Guardar Registro
-          </button>
-        </div>
+              <td class="text-center">
+                <div class="d-flex">
+                  <button class="btn btn-light-danger" @click="question(t)">
+                    <i class="fa-solid fa-trash-can text-danger"></i>
+                  </button>
+                 <button  class="btn btn-light-danger" @click="handleOpenModal(t.id)">
+                   <i class="fa-regular fa-pen-to-square text-primary mx-2"></i>
+                 </button>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="filteredTransactions.length === 0">
+              <td colspan="5" class="text-center py-4 text-muted">No se encontraron movimientos.</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
+
+    <Form ref="open_modal_movimientos" :idModal="'modal_movimientos_gastos'" @update-modal="getGastos" />
+
   </div>
 </template>
 
 <script>
-// import { Search, Plus, X, ChevronRight, Download } from 'lucide-vue-next'
-// import { CATEGORIES, ACCOUNTS, getCategoryIcon } from '../constants'
+import Swal from 'sweetalert2';
+import Form from './form.vue'
+import axios from 'axios'
 
 export default {
   name: 'TransactionsList',
 
-//   components: { Search, Plus, X, ChevronRight, Download },
-
-  props: {
-    transactions: Array,
-    addTransaction: Function
+  components: {
+    Form
   },
 
-//   data() {
-//     return {
-//       searchTerm: '',
-//       showAddModal: false,
-//       typeFilter: 'ALL',
-//       newTx: {
-//         amount: 0,
-//         type: 'EXPENSE',
-//         categoryId: CATEGORIES[0].id,
-//         accountId: ACCOUNTS[0].id,
-//         date: new Date().toISOString().split('T')[0],
-//         description: ''
-//       },
-//       filters: [
-//         { id: 'ALL', label: 'Todos' },
-//         { id: 'INCOME', label: 'Ingresos' },
-//         { id: 'EXPENSE', label: 'Gastos' }
-//       ]
-//     }
-//   },
+  data() {
+    return {
+      searchTerm: '',
+      typeFilter: 'ALL',
+      filters: [
+        { id: 'ALL', label: 'Todos' },
+        { id: 'INCOME', label: 'Ingresos' },
+        { id: 'EXPENSE', label: 'Gastos' }
+      ],
+      // Inicializamos transactions como array vacío para recibir la API
+      transactions: []
+    }
+  },
+  mounted() {
+    this.getGastos()
+  },
+  computed: {
+    filteredTransactions() {
+      return this.transactions.filter(t => {
+        const desc = (t.descripcion || '').toLowerCase();
+        const matchesSearch = desc.includes(this.searchTerm.toLowerCase());
 
-//   computed: {
-//     filteredTransactions() {
-//       return this.transactions.filter(t =>
-//         t.description.toLowerCase().includes(this.searchTerm.toLowerCase()) &&
-//         (this.typeFilter === 'ALL' || t.type === this.typeFilter)
-//       )
-//     }
-//   },
+        // Asumiendo que por defecto la API de gastos son todos 'EXPENSE' 
+        // a menos que tu JSON traiga un campo "tipo"
+        const matchesFilter = this.typeFilter === 'ALL' || (t.tipo || 'EXPENSE') === this.typeFilter;
 
-//   methods: {
-//     handleAdd() {
-//       if (this.newTx.amount <= 0 || !this.newTx.description) return
-//       this.addTransaction(this.newTx)
-//       this.showAddModal = false
-//       this.newTx.amount = 0
-//       this.newTx.description = ''
-//     },
-//     categoryName(id) {
-//       return CATEGORIES.find(c => c.id === id)?.name
-//     },
-//     accountName(id) {
-//       return ACCOUNTS.find(a => a.id === id)?.name
-//     }  }
+        return matchesSearch && matchesFilter;
+      })
+    }
+  },
+
+  methods: {
+    handleOpenModal(id = null) {
+      this.$refs.open_modal_movimientos.openModal(id)
+    },
+
+    getGastos() {
+      this.$loader.presentLoader();
+
+      axios.get("/api/movimientos/gastos")
+        .then((response) => {
+          this.transactions = response?.data?.data ?? [];
+          this.$loader.dismissLoader();
+
+        })
+        .catch(error => {
+          console.error("Error al obtener gastos:", error);
+        });
+    },
+
+    formatDate(dateString) {
+      if (!dateString) return '---';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-ES');
+    },
+    question(item){
+        Swal.fire({
+            title: '¿Esta seguro que desea eliminar el registro?',
+            text: 'La información no podrá ser recuperada',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Confirmar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#fe0000',
+            customClass: {
+                popup: 'swal-small',
+                title: 'swal-title-small',
+                htmlContainer: 'swal-text-small'
+            },
+            width: '400px',
+        }).then((result) => {
+            if (result.isConfirmed) {
+               this.deleteItem(item)
+            }
+        })
+    },
+
+    deleteItem(item){
+      axios.delete(`api/movimientos/gastos/${item?.id}`)
+      .then((response) => {
+        if(response){
+          this.$toastr.success(`${response?.data?.message}`)
+        }
+        this.getGastos()
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+    }
+  }
 }
 </script>

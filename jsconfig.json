@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["resources/js/*"],
+      "@components/*": ["resources/js/components/*"],
+      "@views/*": ["resources/js/views/*"],
+      "@utils/*": ["resources/js/utils/*"],
+      "@services/*": ["resources/js/services/*"]
+    }
+  },
+  "include": ["resources/js/**/*"],
+  "exclude": ["node_modules", "public", "vendor"]
+}
